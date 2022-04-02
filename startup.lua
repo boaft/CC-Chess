@@ -9,16 +9,16 @@
 function setup()
   surface = dofile("surface")
   monitor = peripheral.wrap("back")
-  player_screen_1 = peripheral.find("monitor_1")
-  player_screen_1.setCursorPos((player_screen_1.getSize())/2)
-  player_screen_2 = peripheral.find("monitor_2")
-  player_screen_2.setCursorPos((player_screen_2.getSize())/2)
+  --player_screen_1 = peripheral.find("monitor_1")
+  --player_screen_1.setCursorPos((player_screen_1.getSize())/2)
+  --player_screen_2 = peripheral.find("monitor_2")
+  --player_screen_2.setCursorPos((player_screen_2.getSize())/2)
   monitor.setTextScale(0.5)
   term.redirect(monitor)
   width, height = term.getSize()
   screen = surface.create(width, height)
   font = surface.loadFont(surface.load("font"))
-  board = surface.load("test.nfp")
+  board = surface.load("board.nfp")
   pawn_white = surface.load("pawn_white.nfp")
   pawn_black = surface.load("pawn_black.nfp")
   squares={
@@ -31,6 +31,7 @@ function setup()
     {{},{},{},{},{},{},{},{}},
     {{},{},{},{},{},{},{},{}}
   }
+end
 function test()
   screen:clear(colors.blue)
   screen:drawSurface(board,0,0,121,81)
