@@ -67,6 +67,18 @@ function setup()
   }
 end
 
+function board_refresh()
+  screen:clear(colors.black)
+  screen:drawSurface(board,0,0,width,height)
+  screen:output()
+end
+
+function memory_update(old_x,old_y,x,y)
+  temp=memory[old_y][old_x]
+  memory[y][x]=temp
+  memory[old_y][old_x]="X"
+end
+
 function pieces_setup()
   for i=1,8 do
     if i==1 or i==8 then
@@ -90,39 +102,6 @@ function pieces_setup()
     screen:output()
   end
 end
-
-function is_piece(x,y)
-  if memory[y][x]=="X" then
-    return false
-  else
-    return true
-  end
-end
-function what_color(x,y)
-  if string.sub(memory[y][x],1,1)=="B" then
-    return "B"
-  else
-    return "W"
-  end
-end
-function is_opponent(x,y,turn)
-  if is_piece(x,y)==true then
-    if turn=="W" then
-      if string.sub(memory[y][x],1,1)=="B" then
-        return true
-      else
-        return false
-      end
-    else
-      if string.sub(memory[y][x],1,1)=="W" then
-        return true
-      else
-        return false
-      end
-    end
-  end
-end
-
 
 function fix_square_color(x,y)
   if y%2==0 and x%2~=0 or y%2~=0 and x%2==0 then
@@ -173,12 +152,6 @@ function square_refresh(x,y)
   screen:output()
 end
 
-function memory_update(old_x,old_y,x,y)
-  temp=memory[old_y][old_x]
-  memory[y][x]=temp
-  memory[old_y][old_x]="X"
-end
-
 function update_piece(old_x,old_y,x,y)
   square_refresh(old_x,old_y)
   square_refresh(x,y)
@@ -210,18 +183,121 @@ function update_piece(old_x,old_y,x,y)
   screen:output()
 end
 
-function board_refresh()
-  screen:clear(colors.black)
-  screen:drawSurface(board,0,0,width,height)
-  screen:output()
+function is_piece(x,y)
+  if memory[y][x]=="X" then
+    return false
+  else
+    return true
+  end
 end
 
+function what_color(x,y)
+  if string.sub(memory[y][x],1,1)=="B" then
+    return "B"
+  elseif string.sub(memory[y][x],1,1)=="W" then
+    return "W"
+  else
+    return "empty"
+  end
+end
+
+function is_opponent(x,y,turn)
+  if is_piece(x,y)==true then
+    if turn=="W" then
+      if string.sub(memory[y][x],1,1)=="B" then
+        return true
+      else
+        return false
+      end
+    else
+      if string.sub(memory[y][x],1,1)=="W" then
+        return true
+      else
+        return false
+      end
+    end
+  end
+end
+
+function is_valid_move(old_x,old_y,x,y,turn)
+  if memory[old_y][old_x]=="Wpawn" then
+    if old_y-2<=y and old_x==x and memory[y][x]=="X" and memory[old_y-1][old_x]=="X" then
+      return true
+    elseif old_y-1==y and (old_x+1==x or old_x-1==x) and is_opponent(x,y,"W")==true then
+      return true
+    else
+      return false
+    end
+  
+  elseif memory[old_y][old_x]=="Bpawn" then
+    if old_y+2>=y and old_x==x and memory[y][x]=="X" and memory[old_y+1][old_x]=="X" then
+      return true
+    elseif old_y+1==y and (old_x+1==x or old_x-1==x) and is_opponent(x,y,"B")==true then
+      return true
+    else
+      return false
+    end
+  
+  elseif string.sub(memory[old_y][old_x],2,5)=="rook" then
+    count=0
+    step=1
+    if old_y>y or old_x>x then
+        step=-1
+    end
+    if old_y==y and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then  
+      for i=old_x+step,x,step do
+        if memory[y][i]~="X" then
+          count=count+1
+        end
+      end
+      if count==1 and is_opponent(x,y,turn)==true then
+          return true
+      elseif count==0 then
+        return(true)
+      else
+        return(false)
+      end
+    elseif old_x==x and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then
+      for i=old_y+step,y,step do
+        if memory[i][x]~="X" then
+          count=count+1
+        end
+      end
+      if count==1 and is_opponent(x,y,turn)==true then
+          return true
+      elseif count==0 then
+        return(true)
+      else
+        return(false)
+      end
+    else
+      return false
+    end
+
+  elseif string.sub(memory[old_y][old_x],2,7)=="knight" then
+    return true
+
+  elseif memory[y][x]=="Bbishop" then
+    return true
+  elseif memory[y][x]=="Wbishop" then
+    return true
+  elseif memory[y][x]=="Wking" then
+    return true
+  elseif memory[y][x]=="Bking" then
+    return true
+  elseif memory[y][x]=="Wqueen" then
+    return true
+  elseif memory[y][x]=="Bqueen" then
+    return true
+  end
+end
+--old x and y can only be a peice
 function player_selection(turn)
   flag=0
   old_x=1
-  old_x=1
+  old_y=1
   repeat
-    if flag==1 then
+    if flag==1 and is_piece(x,y)==true and what_color(x,y)==turn then
       old_x=x
       old_y=y
       fix_square_color(old_x,old_y)
@@ -248,18 +324,19 @@ function player_selection(turn)
       end
       screen:output()
     end
-  until((is_piece(x,y)==false or is_opponent(x,y,turn)==true) and is_piece(old_x,old_y)==true and flag==1)
+  until((is_piece(x,y)==false and is_piece(old_x,old_y)==true and flag==1 and is_valid_move(old_x,old_y,x,y,turn)==true and what_color(old_x,old_y)==turn) or (is_opponent(x,y,turn)==true and is_piece(old_x,old_y)==true and flag==1 and is_valid_move(old_x,old_y,x,y,turn)==true and what_color(old_x,old_y)==turn))
   memory_update(old_x,old_y,x,y)
   update_piece(old_x,old_y,x,y)
 end
 
 function test()
+  black="B"
+  white="W"
   board_refresh()
   pieces_setup()
-  --screen:drawSurface(pawn_white,squares[1][2]-10,squares[8*6][1]-6)
   while true do
-    player_selection("W")
-    player_selection("B")
+    player_selection(white)
+    player_selection(black)
   end
 end
 
