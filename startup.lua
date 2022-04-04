@@ -69,36 +69,6 @@ function setup()
   }
 end
 
-function draw_board()
-  flag=1
-  for j=1,8 do
-    if flag==5 then
-      for i=2,8,2 do
-      screen:fillRect((squares[i][2])-15,squares[j*8][1]-11,15,11,colors.black)
-      if i==5 then
-        screen:fillRect((squares[i][2])-16,squares[j*8][1]-10,16,10,colors.black)
-      end
-      end
-    elseif flag%2==0 then
-      for i=1,8,2 do
-      screen:fillRect((squares[i][2])-15,squares[j*8][1]-10,15,10,colors.black)
-      if i==5 then
-        screen:fillRect((squares[i][2])-16,squares[j*8][1]-10,16,10,colors.black)
-      end
-      end
-    else
-      for i=2,8,2 do
-      screen:fillRect((squares[i][2])-15,squares[j*8][1]-10,15,10,colors.black)
-      if i==5 then
-        screen:fillRect((squares[i][2])-16,squares[j*8][1]-10,16,10,colors.black)
-      end
-      end
-    end
-    flag=flag+1
-  end
-  screen:output()
-end
-
 function player_selection()
   flag=0
   while true do
@@ -112,8 +82,9 @@ function player_selection()
     elseif y==5 and x==5 then
       screen:drawRect((squares[x][2])-16, (squares[y*8][1])-11, 16, 11,colors.red)
     else
-      screen:drawSurface(pawn_white,(squares[x][2])-10,(squares[y*8][1])-6)
+      screen:drawRect((squares[x][2])-15,(squares[y*8][1])-10,15,10,colors.red)
     end
+    screen:output()
   end
 end
 
@@ -124,7 +95,7 @@ function pieces_setup()
       screen:drawSurface(rook_black,squares[i][2]-10,squares[8*1][1]-8)
     elseif i==2 or i==7 then
       screen:drawSurface(knight_white,squares[i][2]-10,squares[8*8][1]-6)
-      screen:drawSurface(knight_black,squares[i][2]-10,squares[8*1][1]-8)
+      screen:drawSurface(knight_black,squares[i][2]-10,squares[8*1][1]-8) 
     elseif i==3 or i==6 then
       screen:drawSurface(bishop_white,squares[i][2]-10,squares[8*8][1]-6)
       screen:drawSurface(bishop_black,squares[i][2]-10,squares[8*1][1]-8)
@@ -142,12 +113,18 @@ function pieces_setup()
   end
 end
 
-function test()
-  --draw_board()
+function board_refresh()
+  screen:clear(colors.black)
   screen:drawSurface(board,0,0,width,height)
+  screen:output()
+end
+
+function test()
+  board_refresh()
   pieces_setup()
-  screen:drawSurface(select_pawn_white,5,5,100,100)
+  --screen:drawSurface(pawn_white,squares[1][2]-10,squares[8*6][1]-6)
   player_selection()
+
 end
 
 setup()
