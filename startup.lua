@@ -221,18 +221,22 @@ end
 
 function is_valid_move(old_x,old_y,x,y,turn)
   if memory[old_y][old_x]=="Wpawn" then
-    if old_y-2<=y and old_x==x and memory[y][x]=="X" and memory[old_y-1][old_x]=="X" then
+    if old_y-1<=y and old_x==x and memory[y][x]=="X" and memory[old_y-1][old_x]=="X" then
       return true
     elseif old_y-1==y and (old_x+1==x or old_x-1==x) and is_opponent(x,y,"W")==true then
+      return true
+    elseif old_y-2<=y and old_x==x and memory[y][x]=="X" and memory[old_y-1][old_x]=="X" and old_y==7 then
       return true
     else
       return false
     end
   
   elseif memory[old_y][old_x]=="Bpawn" then
-    if old_y+2>=y and old_x==x and memory[y][x]=="X" and memory[old_y+1][old_x]=="X" then
+    if old_y+1>=y and old_x==x and memory[y][x]=="X" and memory[old_y+1][old_x]=="X" then
       return true
     elseif old_y+1==y and (old_x+1==x or old_x-1==x) and is_opponent(x,y,"B")==true then
+      return true
+    elseif old_y-2<=y and old_x==x and memory[y][x]=="X" and memory[old_y+1][old_x]=="X" and old_y==2 then
       return true
     else
       return false
