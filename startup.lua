@@ -279,22 +279,26 @@ function is_valid_move(old_x,old_y,x,y,turn)
     end
 
   elseif string.sub(memory[old_y][old_x],2,7)=="knight" then
+    if (old_y-2==y or old_y+2==y) and (old_x+1==x or old_x-1==x) and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then
+      return true
+    elseif (old_y-1==y or old_y+1==y) and (old_x+2==x or old_x-2==x) and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then
+      return true
+    else
+      return false
+    end
+
+  elseif string.sub(memory[old_y][old_x],2,7)=="bishop" then
     return true
 
-  elseif memory[y][x]=="Bbishop" then
+  elseif string.sub(memory[old_y][old_x],2,5)=="king" then
     return true
-  elseif memory[y][x]=="Wbishop" then
+
+  elseif string.sub(memory[old_y][old_x],2,6)=="queen" then
     return true
-  elseif memory[y][x]=="Wking" then
-    return true
-  elseif memory[y][x]=="Bking" then
-    return true
-  elseif memory[y][x]=="Wqueen" then
-    return true
-  elseif memory[y][x]=="Bqueen" then
-    return true
+
   end
 end
+
 --old x and y can only be a peice
 function player_selection(turn)
   flag=0
