@@ -1,33 +1,24 @@
 --TODO
 --https://en.wikipedia.org/wiki/Descriptive_notation
---Make move logic
+--Add special Chess move logic
 --Make timers and start game **players both hit start on thier screens within 3 seconds
-local function round(num, mult)
-  return math.floor(num / mult + 0.5) * mult
-end
 
-function debug()
-  term.redirect(testview)
-  while true do
-    event, side, xPos, yPos = os.pullEvent("monitor_touch") 
-    x=math.floor(xPos/15)+1
-    y=math.ceil(yPos/10)
-    print(event .. " => Side: " .. tostring(side) .. ", " ..
-    "x: " .. tostring(x) .. ", " ..
-    "y: " .. tostring(y))
-  end
-end
 
 function setup()
   surface = dofile("surface")
-  monitor = peripheral.wrap("back")
-  testview=peripheral.wrap("top")
+  monitor = peripheral.wrap("top")
+  player_1_monitor=peripheral.wrap("monitor_0")
+  player_2_monitor=peripheral.wrap("monitor_1")
   monitor.setTextScale(0.5)
   term.redirect(monitor)
-
   width, height = term.getSize()
   screen = surface.create(width, height,colors.white)
   font = surface.loadFont(surface.load("font"))
+
+  player_1_time=180
+  player1="W"
+  player_2_time=180
+  player2="B"
 
   board=surface.load("board.nfp")
   selection=surface.load("selection.nfp")
@@ -67,6 +58,18 @@ function setup()
   }
 end
 
+function timer(player_time,player)
+  while player_time~=0 do
+    player_time=player_time-1
+    if player=="W" then
+      player_1_monitor.setBackgroundColor(colors.blue)
+    else
+      player_2_monitor.setBackgroundColor(colors.green)
+    end
+    os.sleep(1)
+  end  
+end
+
 function board_refresh()
   screen:clear(colors.black)
   screen:drawSurface(board,0,0,width,height)
@@ -90,10 +93,10 @@ function pieces_setup()
     elseif i==3 or i==6 then
       screen:drawSurface(bishop_white,squares[i][2]-10,squares[8*8][1]-6)
       screen:drawSurface(bishop_black,squares[i][2]-10,squares[8*1][1]-8)
-    elseif i==4 then
+    elseif i==5 then
       screen:drawSurface(king_white,squares[i][2]-10,squares[8*8][1]-6)
       screen:drawSurface(king_black,squares[i][2]-10,squares[8*1][1]-8)
-    elseif i==5 then
+    elseif i==4 then
       screen:drawSurface(queen_white,squares[i][2]-10,squares[8*8][1]-6)
       screen:drawSurface(queen_black,squares[i][2]-10,squares[8*1][1]-8)
     end
@@ -288,18 +291,162 @@ function is_valid_move(old_x,old_y,x,y,turn)
     end
 
   elseif string.sub(memory[old_y][old_x],2,7)=="bishop" then
-    return true
-
-  elseif string.sub(memory[old_y][old_x],2,5)=="king" then
-    return true
+    check=0
+    y_check=false
+    x_check=false
+    total=math.abs(old_y-y)
+    if old_x>x then
+        x_check=true
+    end
+    if old_y>y then
+        y_check=true
+    end
+    if (math.abs(old_y-y)==math.abs(old_x-x)) and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then
+      if x_check==true and y_check==true then
+        for i=1,total,1 do
+          test1=old_y-i
+          test2=old_x-i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      elseif x_check==false and y_check==false then
+        for i=1,total,1 do
+          test1=old_y+i
+          test2=old_x+i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      elseif x_check==false and y_check==true then
+        for i=1,total,1 do
+          test1=old_y-i
+          test2=old_x+i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      elseif x_check==true and y_check==false then
+        for i=1,total,1 do
+          test1=old_y+i
+          test2=old_x-i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      end
+      if check==1 and is_opponent(x,y,turn)==true then
+        return true
+      elseif check==0 then
+        return(true)
+      else
+        return(false)
+      end
+    else
+      return false
+    end
 
   elseif string.sub(memory[old_y][old_x],2,6)=="queen" then
-    return true
+    check=0
+    y_check=false
+    x_check=false
+    total=math.abs(old_y-y)
+    if old_x>x then
+        x_check=true
+    end
+    if old_y>y then
+        y_check=true
+    end
+    count=0
+    step=1
+    if old_y>y or old_x>x then
+        step=-1
+    end
+
+    if (math.abs(old_y-y)==math.abs(old_x-x)) and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then
+      if x_check==true and y_check==true then
+        for i=1,total,1 do
+          test1=old_y-i
+          test2=old_x-i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      elseif x_check==false and y_check==false then
+        for i=1,total,1 do
+          test1=old_y+i
+          test2=old_x+i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      elseif x_check==false and y_check==true then
+        for i=1,total,1 do
+          test1=old_y-i
+          test2=old_x+i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      elseif x_check==true and y_check==false then
+        for i=1,total,1 do
+          test1=old_y+i
+          test2=old_x-i
+          if memory[test1][test2]~="X" then
+            check=check+1
+          end
+        end
+      end
+      if check==1 and is_opponent(x,y,turn)==true then
+        return true
+      elseif check==0 then
+        return(true)
+      else
+        return(false)
+      end
+    
+    elseif old_y==y and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then  
+      for i=old_x+step,x,step do
+        if memory[y][i]~="X" then
+          count=count+1
+        end
+      end
+      if count==1 and is_opponent(x,y,turn)==true then
+          return true
+      elseif count==0 then
+        return(true)
+      else
+        return(false)
+      end
+    
+    elseif old_x==x and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then
+      for i=old_y+step,y,step do
+        if memory[i][x]~="X" then
+          count=count+1
+        end
+      end
+      if count==1 and is_opponent(x,y,turn)==true then
+          return true
+      elseif count==0 then
+        return(true)
+      else
+        return(false)
+      end
+    else
+      return false
+    end
+  --add castling logic here 
+
+  elseif string.sub(memory[old_y][old_x],2,5)=="king" then
+    if ((math.abs(old_y-y) == math.abs(old_x-x)) or (math.abs(old_y-y)==1 and old_x==x) or (math.abs(old_x-x)==1 and old_y==y)) and (memory[y][x]=="X" or is_opponent(x,y,turn)==true) then
+      return true
+    else
+      return false
+    end
 
   end
 end
 
---old x and y can only be a peice
 function player_selection(turn)
   flag=0
   old_x=1
@@ -338,13 +485,18 @@ function player_selection(turn)
 end
 
 function test()
-  black="B"
-  white="W"
+
   board_refresh()
   pieces_setup()
   while true do
-    player_selection(white)
-    player_selection(black)
+    parallel.waitForAny(player_selection(player1),timer(player_1_time,player1))
+    if player_1_time==0 then
+      break
+    end
+    parallel.waitForAny(player_selection(player2),timer(player_2_time,player2))
+    if player_2_time==0 then
+      break
+    end
   end
 end
 
